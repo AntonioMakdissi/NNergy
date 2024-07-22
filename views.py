@@ -136,7 +136,7 @@ labellayer = tk.Label(top_frame, text="Layer Type:")
 labellayer.grid(row=0, column=0, padx=5)
 layer_var = tk.StringVar(value="dense")
 layer_dropdown = ttk.Combobox(top_frame, textvariable=layer_var, width=15)
-layer_dropdown['values'] = ("dense", "convolution", "pooling", "flatten", "gru")
+layer_dropdown['values'] = ("dense", "convolution", "pooling", "flatten")#, "gru")
 layer_dropdown.grid(row=0, column=1, padx=5)
 
 # Add layer button

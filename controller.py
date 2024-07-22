@@ -21,7 +21,7 @@ def save(input_height, input_width, input_channels, layer_frames, layers, config
     layer_configurations = []
     for frame in layers:
         layer_type = frame.layer_type
-        entries = [entry.get() for entry in frame.get_entries()]
+        entries = [entry for entry in frame.get_entries()]
         layer_configurations.append((layer_type, entries))
 
     # Load existing configurations
@@ -189,20 +189,24 @@ def calculate(total_mac, total_mem, input_height, input_width, input_channels, r
             width = int(entries[1])
             filters = int(entries[2])
             stride = int(entries[3])
-            padding = int(entries[4])
+            padding = entries[4]
 
-            output_height = (
-                (prev_output_height - height + 2 * padding) // stride) + 1
-            output_width = (
-                (prev_output_width - width + 2 * padding) // stride) + 1
+            if padding == "same":
+                output_height = prev_output_height
+                output_width = prev_output_width
+            else:
+                padding = int (padding)
+                output_height = (
+                    (prev_output_height - height + 2 * padding) // stride) + 1
+                output_width = (
+                    (prev_output_width - width + 2 * padding) // stride) + 1
             output_channels = filters
 
             params = (height * width * prev_output_channels + 1) * filters
             activation = output_height * output_width * output_channels
-            maccs = output_height * output_width * filters * \
-                height * width * prev_output_channels
+            maccs = output_height * output_width * filters * height * width * prev_output_channels
             
-            mem = (activation + params)+prev_output_height * prev_output_width * prev_output_channels * height * width * filters #remove prev_output_size for parallel computing
+            mem = prev_output_height * prev_output_width * prev_output_channels * height * width * filters+ (params + activation) #remove prev_output_size for parallel computing
 
             result_text = (f"Layer {layer_number} - Convolution Layer: \n Input Size: {prev_output_height}x{prev_output_width}x{prev_output_channels}, "
                            f"Filter Size: {height}x{width}, Filters: {
@@ -220,6 +224,9 @@ def calculate(total_mac, total_mem, input_height, input_width, input_channels, r
         elif layer.layer_type == "pooling":
             pool_size = int(entries[0])
             stride = int(entries[1])
+            params = 0 
+            maccs = 0
+            mem = 0
 
             output_height = ((prev_output_height - pool_size) // stride) + 1
             output_width = ((prev_output_width - pool_size) // stride) + 1
@@ -232,12 +239,16 @@ def calculate(total_mac, total_mem, input_height, input_width, input_channels, r
 
             prev_output_height = output_height
             prev_output_width = output_width
+            prev_output_size = output_height*output_width*output_channels
 
         elif layer.layer_type == "flatten":
             # Flatten the output
             prev_output_size = prev_output_height * prev_output_width * prev_output_channels
             prev_output_height = 1
             prev_output_width = 1
+            params = 0 
+            maccs = 0
+            mem = 0
             result_text = (
                 f"Layer {layer_number} - Flatten Layer: \n Input Size: {prev_output_size}\n")
             results_display.insert(tk.END, result_text)
@@ -246,28 +257,31 @@ def calculate(total_mac, total_mem, input_height, input_width, input_channels, r
             num_neurons = int(entries[0])
             params = (prev_output_size + 1) * num_neurons
             maccs = prev_output_size * num_neurons
-            mem = num_neurons + params  + prev_output_size #remove prev_output_size for parallel computing
+            #mem = num_neurons + params  + prev_output_size #
+            #  for parallel computing
+            mem = (2*prev_output_size + 1) * num_neurons + num_neurons
             result_text = (f"Layer {layer_number} - Dense Layer: \n Input Size: {prev_output_size}, Neurons: {num_neurons}, "
                            f"MACCs: {maccs}, Params: {params}, MEM: {mem}, Activation: {num_neurons}\n")
             results_display.insert(tk.END, result_text)
             prev_output_size = num_neurons  # Update for the next layer
 
-        elif layer.layer_type == "gru":
-            units = int(entries[0])
-            return_sequences = entries[1]
-            # return_sequences = return_sequences.get()  # Get the boolean value
+        # elif layer.layer_type == "gru":
+        #     units = int(entries[0])
+        #     return_sequences = entries[1]
+        #     # return_sequences = return_sequences.get()  # Get the boolean value
 
-            # 3 matrices per gate, i.e., update gate, reset gate, and new memory gate
-            params = 3 * (prev_output_size + units) * units
-            maccs = prev_output_size * units
-            mem = units + params + prev_output_size #remove prev_output_size for parallel computing
-            result_text = (f"Layer {layer_number} - GRU Layer: \n Input Size: {prev_output_size}, Units: {units}, "
-                           f"MACCs: {maccs}, Params: {params}, MEM: {mem}, Return Sequences: {return_sequences}\n")
-            results_display.insert(tk.END, result_text)
-            # Update for the next layer
-            prev_output_size = units if not return_sequences else prev_output_size
+        #     # 3 matrices per gate, i.e., update gate, reset gate, and new memory gate
+        #     params = 3 * (prev_output_size + units) * units
+        #     maccs = prev_output_size * units
+        #     mem = units + params + prev_output_size #remove prev_output_size for parallel computing
+        #     result_text = (f"Layer {layer_number} - GRU Layer: \n Input Size: {prev_output_size}, Units: {units}, "
+        #                    f"MACCs: {maccs}, Params: {params}, MEM: {mem}, Return Sequences: {return_sequences}\n")
+        #     results_display.insert(tk.END, result_text)
+        #     # Update for the next layer
+        #     prev_output_size = units if not return_sequences else prev_output_size
 
         # Accumulate totals
+        #print(i, params , "\n")#debugging
         total_maccs += maccs
         total_params += params
         total_mems += mem

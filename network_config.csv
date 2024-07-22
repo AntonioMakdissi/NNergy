@@ -1,19 +1,4 @@
-Configuration 1,,,,,,
-Input Height,160,,,,,
-Input Width,1,,,,,
-Input Channels,1,,,,,
-dense,320,relu,,,,
-dense,320,relu,,,,
-dense,100,relu,,,,
-Configuration 2,,,,,,
-Input Height,160,,,,,
-Input Width,1,,,,,
-Input Channels,1,,,,,
-dense,320,relu,,,,
-dense,320,relu,,,,
-dense,100,relu,,,,
-convolution,1,1,1,1,0,relu
-Configuration myAI_2,,,,,,
+Configuration myAI_conv,,,,,,
 Input Height,100,,,,,
 Input Width,100,,,,,
 Input Channels,3,,,,,
@@ -253,20 +238,12 @@ Input Height,502,,,,,
 Input Width,1,,,,,
 Input Channels,1,,,,,
 dense,1,relu,,,,
-Configuration 1
-Input Height,160
-Input Width,1
+Configuration aalinet_conv
+Input Height,16
+Input Width,10
 Input Channels,1
-dense,320,relu
-dense,320,relu
+convolution,16,10,320,1,0,relu
+convolution,1,1,320,1,0,relu
+flatten
 dense,100,relu
-
-Configuration 1h8h
-Input Height,160
-Input Width,1
-Input Channels,1
-dense,320,relu
-dense,320,relu
-dense,100,relu
-dense,1,relu
 

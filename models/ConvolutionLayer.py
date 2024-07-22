@@ -77,7 +77,7 @@ class ConvolutionLayer(AnyLayer.AnyLayer):
         tk.Label(self.frame, text="Padding:").grid(row=1, column=4, padx=1)
         self.padding_entry = tk.Entry(self.frame, width=self.entry_width)
         self.padding_entry.grid(row=1, column=5, padx=1)
-        self.padding_entry.insert(tk.END, values[4] if values else "1")
+        self.padding_entry.insert(tk.END, values[4] if values else "same")
 
         tk.Label(self.frame, text="Activation:").grid(row=1, column=6, padx=1)
         self.activation_entry = tk.Entry(self.frame, width=self.entry_width+5)
